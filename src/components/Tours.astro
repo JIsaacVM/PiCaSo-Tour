@@ -1,0 +1,74 @@
+---
+const { tours = [] } = Astro.props;
+
+// Función para transformar enlaces de Google Drive en URLs de imagen directa
+function getDirectImageUrl(url) {
+    if (!url) return '';
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+        return `https://lh3.googleusercontent.com/d/${match[1]}`;
+    }
+    return url;
+}
+---
+<section id="experiencias" class="py-24 px-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Cabecera conectada a la pestaña 'Textos' de Google Sheets -->
+        <div class="text-center max-w-2xl mx-auto mb-16 reveal-on-scroll">
+            <span class="text-xs text-[#A94438] font-bold uppercase tracking-widest bg-[#F5EBE1] dark:bg-[#241C15] px-4 py-1.5 rounded-full border border-[#D4A373] shadow-sm" data-i18n="tours-badge">
+                Experiencias Exclusivas
+            </span>
+            <h2 class="text-4xl md:text-5xl font-bold mt-4 mb-4 font-serif" style="color: var(--text-color);" data-i18n="tours-title">Nuestros Tours</h2>
+            <p class="font-light" style="color: var(--subtext-color);" data-i18n="tours-subtitle">Sumérgete en la ruta del calzado, la piel y el sombrero con guías expertos certificados.</p>
+        </div>
+
+        <!-- Listado dinámico conectado a la pestaña 'Tours' de Google Sheets -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {tours.map((tour) => {
+                const rawImage = tour.image_url || tour.imagen;
+                const tourImage = getDirectImageUrl(rawImage);
+                return (
+                    <div class="stitched-border reveal-on-scroll">
+                        <div class="stitched-inner p-6 flex flex-col justify-between h-full">
+                            <div>
+                                {tourImage && (
+                                    <div class="aspect-video rounded-2xl overflow-hidden mb-6 shadow-md">
+                                        <img src={tourImage} alt={tour.titulo_es || tour.titulo} class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                                    </div>
+                                )}
+                                <span class="text-xs text-[#A94438] font-bold uppercase tracking-widest bg-[#F5EBE1] dark:bg-[#241C15] px-3 py-1 rounded-full inline-block mb-3">
+                                    {tour.categoria || 'Tour Vivencial'}
+                                </span>
+                                
+                                <!-- Título multilingüe dinámico -->
+                                <h3 class="font-bold text-xl md:text-2xl mb-3 font-serif tour-title"
+                                    data-es={tour.titulo_es || tour.titulo}
+                                    data-en={tour.titulo_en || tour.titulo}
+                                    data-fr={tour.titulo_fr || tour.titulo}
+                                    data-jp={tour.titulo_jp || tour.titulo}>
+                                    {tour.titulo_es || tour.titulo}
+                                </h3>
+
+                                <!-- Descripción multilingüe dinámica -->
+                                <p class="text-sm mb-6 line-clamp-3 tour-desc" style="color: var(--subtext-color);"
+                                    data-es={tour.desc_es || tour.descripcion}
+                                    data-en={tour.desc_en || tour.descripcion}
+                                    data-fr={tour.desc_fr || tour.descripcion}
+                                    data-jp={tour.desc_jp || tour.descripcion}>
+                                    {tour.desc_es || tour.descripcion}
+                                </p>
+                            </div>
+
+                            <div class="pt-4 border-t border-[#D4A373]/30 flex items-center justify-between">
+                                <span class="font-bold text-lg text-[#A94438]">{tour.precio || '$--'}</span>
+                                <a href={`https://wa.me/524771668537?text=Hola,%20me%20interesa%20reservar%20el%20tour:%20${encodeURIComponent(tour.titulo_es || '')}`} target="_blank" class="bg-[#A94438] hover:bg-[#8e382f] text-white text-sm font-bold px-5 py-2.5 rounded-full transition-colors shadow-sm" data-i18n="btn-book">
+                                    Reservar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    </div>
+</section>

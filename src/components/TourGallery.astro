@@ -1,0 +1,68 @@
+---
+export interface GalleryItem {
+    id: string;
+    image_url: string;
+    tag_es: string;
+    tag_en: string;
+    tag_fr: string;
+    tag_jp: string;
+    title_es: string;
+    title_en: string;
+    title_fr: string;
+    title_jp: string;
+    cols?: string | number;
+    rows?: string | number;
+}
+
+const { gallery = [] } = Astro.props;
+
+// Datos de respaldo por si la API de Google Sheets aún no responde o está vacía
+const fallbackGallery: GalleryItem[] = [
+
+];
+
+const displayGallery = gallery.length > 0 ? gallery : fallbackGallery;
+---
+
+<section id="galeria" class="py-24 px-6 relative">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center max-w-2xl mx-auto mb-16 reveal-on-scroll">
+            <span class="text-xs text-[#A94438] font-bold uppercase tracking-widest bg-[#F5EBE1] dark:bg-[#241C15] px-4 py-1.5 rounded-full border border-[#D4A373] shadow-sm" data-i18n="gallery-badge">
+                Galería Vivencial
+            </span>
+            <h2 class="text-4xl md:text-5xl font-bold mt-4 mb-4 font-serif" style="color: var(--text-color);" data-i18n="gallery-title">Instantes de Identidad</h2>
+            <p class="font-light" style="color: var(--subtext-color);" data-i18n="gallery-subtitle">Un vistazo a las experiencias, talleres y paisajes que viven nuestros exploradores en León.</p>
+        </div>
+
+        <!-- Bento Grid Asimétrico Dinámico -->
+        <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-6 auto-rows-[240px]">
+            {displayGallery.map((item) => {
+                const colSpan = item.cols == 2 ? 'md:col-span-2' : 'md:col-span-1';
+                const rowSpan = item.rows == 2 ? 'md:row-span-2' : 'md:row-span-1';
+                const titleSize = item.cols == 2 ? 'text-2xl' : 'text-lg';
+
+                return (
+                    <div class={`${colSpan} ${rowSpan} rounded-3xl overflow-hidden border border-[#D4A373] relative group shadow-xl reveal-on-scroll`}>
+                        <img src={item.image_url} alt={item.title_es} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-95 flex flex-col justify-end p-6 md:p-8">
+                            <span class="text-xs text-[#D4A373] font-bold uppercase tracking-wider mb-1 gallery-tag"
+                                  data-es={item.tag_es}
+                                  data-en={item.tag_en}
+                                  data-fr={item.tag_fr}
+                                  data-jp={item.tag_jp}>
+                                {item.tag_es}
+                            </span>
+                            <h3 class={`font-bold text-white font-serif gallery-title-item ${titleSize}`}
+                                  data-es={item.title_es}
+                                  data-en={item.title_en}
+                                  data-fr={item.title_fr}
+                                  data-jp={item.title_jp}>
+                                {item.title_es}
+                            </h3>
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    </div>
+</section>

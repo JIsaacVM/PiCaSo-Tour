@@ -1,0 +1,33 @@
+<section id="inicio" class="relative pt-32 pb-24 md:pt-48 md:pb-40 px-6 flex items-center justify-center min-h-[90vh] overflow-hidden">
+    <!-- YouTube Background Video -->
+    <div class="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none blur-[8px] opacity-30">
+        <iframe 
+            src="https://www.youtube.com/embed/AFqWovRMle4?autoplay=1&mute=1&loop=1&playlist=AFqWovRMle4&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1" 
+            class="absolute top-1/2 left-1/2 w-[250vw] h-[250vh] md:w-[150vw] md:h-[150vw] -translate-x-1/2 -translate-y-1/2"
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+        </iframe>
+    </div>
+
+    <!-- Overlay Gradiente dinámico -->
+    <div class="absolute inset-0 z-0" style="background: linear-gradient(to bottom, var(--bg-color) 0%, transparent 50%, var(--bg-color) 100%); opacity: 0.85;"></div>
+
+    <div class="max-w-4xl mx-auto text-center relative z-10 reveal-on-scroll">
+        <span class="inline-block bg-[#3D2C1E] text-white text-xs font-bold px-4 py-1.5 rounded-full mb-6 uppercase tracking-widest shadow-lg" data-i18n="hero-badge">
+            Tour Operador Galardonado
+        </span>
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight font-serif" style="color: var(--text-color);">
+            <span data-i18n="hero-title-1">Descubre la identidad de la</span> <br/>
+            <span class="text-[#A94438] italic" data-i18n="hero-title-2">Piel, Calzado y Sombrero</span>
+        </h1>
+        <p class="text-xl mb-10 leading-relaxed font-light max-w-2xl mx-auto" style="color: var(--subtext-color);" data-i18n="hero-desc">
+            Experiencias turísticas vivenciales únicas que valorizan el patrimonio cultural, natural y productivo emblemático de León y sus alrededores.
+        </p>
+        <div class="flex flex-wrap gap-4 justify-center">
+            <a href="#experiencias" class="bg-[#A94438] hover:bg-[#82322A] text-white font-bold px-8 py-4 rounded-2xl transition-all duration-300 shadow-xl hover:scale-105 active:scale-95 text-lg" data-i18n="btn-explore">
+                Ver Tours
+            </a>
+        </div>
+    </div>
+</section>

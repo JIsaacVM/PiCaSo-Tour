@@ -1,0 +1,32 @@
+<header class="fixed top-6 left-0 w-full z-40 px-6 pointer-events-none flex justify-center">
+    <nav class="max-w-6xl w-full mx-auto h-18 px-6 flex items-center justify-between backdrop-blur-md border border-[#D4A373]/50 shadow-xl transition-all duration-300 pointer-events-auto rounded-full" style="background-color: var(--nav-bg);">
+        <a href="#inicio" class="text-2xl font-bold tracking-wider font-serif hover:text-[#A94438] transition-colors" style="color: var(--text-color);">
+            <img src="../../public/img/logo-picaso-tour.webp" alt="" class="w-20">
+        </a>
+
+        <ul class="hidden lg:flex space-x-6 text-sm font-semibold" style="color: var(--subtext-color);">
+            <li><a href="#inicio" class="hover:text-[#A94438] transition-colors" data-i18n="nav-inicio">Inicio</a></li>
+            <li><a href="#nosotros" class="hover:text-[#A94438] transition-colors" data-i18n="nav-nosotros">Quiénes Somos</a></li>
+            <li><a href="#experiencias" class="hover:text-[#A94438] transition-colors" data-i18n="nav-experiencias">Experiencias</a></li>
+            <li><a href="#testimonios" class="hover:text-[#A94438] transition-colors" data-i18n="nav-testimonios">Testimonios</a></li>
+            <li><a href="#blog" class="hover:text-[#A94438] transition-colors" data-i18n="nav-blog">Blog</a></li>
+        </ul>
+        
+        <div class="flex items-center gap-3 relative">
+            <select id="langSelect" class="hover:opacity-85 border border-[#D4A373] px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer focus:outline-none shadow-sm" style="background-color: var(--card-bg); color: var(--text-color);">
+                <option value="es">🇲🇽 ES</option>
+                <option value="en">🇺🇸 EN</option>
+                <option value="fr">🇫🇷 FR</option>
+                <option value="jp">🇯🇵 JP</option>
+            </select>
+
+            <button id="themeToggle" class="w-9 h-9 border border-[#D4A373] rounded-full flex items-center justify-center text-xs font-bold transition-all hover:scale-105 cursor-pointer shadow-sm" style="background-color: var(--card-bg); color: var(--text-color);" title="Cambiar Tema">
+                🌙
+            </button>
+
+            <a href="https://wa.me/524771668537" target="_blank" class="bg-[#A94438] hover:bg-[#82322A] text-white font-bold px-5 py-2 rounded-full text-xs transition-all duration-300 shadow-md hover:scale-105 active:scale-95" data-i18n="btn-book-nav">
+                Reservar
+            </a>
+        </div>
+    </nav>
+</header>
