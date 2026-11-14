@@ -5,22 +5,41 @@ import Hero from '../components/Hero.astro';
 import About from '../components/About.astro';
 import Tours from '../components/Tours.astro';
 import TestimonialsAndBlog from '../components/TestimonialsAndBlog.astro';
+import TourGallery from '../components/TourGallery.astro';
 
-// Conexión a tu Google Apps Script
-const API_URL = "https://script.google.com/macros/s/AKfycbw3cCbklFVlmP3lm4g-4ja0jz7hUqigPJYW7h7-BX_leafojkmfcUovOFwrVUCO_TzF/exec";
+// Conexión a tu Google Apps Script (URL de la implementación activa, termina en /exec)
+const API_URL = import.meta.env.SHEETS_URL;
 
-let apiData = {
-	tours: [],
-	translations: {}
+if (!API_URL) {
+	throw new Error("Falta la variable de entorno SHEETS_URL (.env local y Vercel → Settings → Environment Variables).");
+}
+
+// Vercel guarda la página 60 s en caché: los cambios del Sheet se ven en ~1 minuto
+// sin que cada visita tenga que esperar a Google.
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+
+const res = await fetch(API_URL);
+if (!res.ok) {
+	throw new Error(`Google Apps Script respondió con estado ${res.status}`);
+}
+
+// Si Google devuelve HTML (login, error, implementación equivocada), aquí truena
+// y el Build Log de Vercel muestra el problema real.
+let json;
+try {
+	json = await res.json();
+} catch (e) {
+	throw new Error("La respuesta de Google Sheets no es JSON. Revisa la URL /exec y que el acceso sea 'Cualquiera'.");
+}
+
+const apiData = {
+	tours: json.tours ?? [],
+	translations: json.translations ?? {},
+	gallery: json.gallery ?? [],
 };
 
-try {
-	const res = await fetch(API_URL);
-	const json = await res.json();
-	if (json.tours) apiData.tours = json.tours;
-	if (json.translations) apiData.translations = json.translations;
-} catch (e) {
-	console.error("Error al conectar con Google Sheets:", e);
+if (apiData.tours.length === 0) {
+	console.warn("Aviso: la hoja 'Tours' llegó vacía.");
 }
 ---
 
@@ -105,6 +124,7 @@ try {
 			<Hero />
 			<About />
 			<Tours tours={apiData.tours} />
+			<TourGallery gallery={apiData.gallery} />
 			<TestimonialsAndBlog />
 		</main>
 
@@ -143,13 +163,8 @@ try {
 					}
 				});
 
-				// Traducir dinámicamente los tours de Google Sheets
-				document.querySelectorAll('.tour-title').forEach(el => {
-					const text = el.getAttribute(`data-${lang}`);
-					if (text) el.textContent = text;
-				});
-
-				document.querySelectorAll('.tour-desc').forEach(el => {
+				// Traducir dinámicamente tours y galería de Google Sheets
+				document.querySelectorAll('.tour-title, .tour-desc, .gallery-title, .gallery-tag').forEach(el => {
 					const text = el.getAttribute(`data-${lang}`);
 					if (text) el.textContent = text;
 				});

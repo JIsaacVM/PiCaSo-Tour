@@ -1,25 +1,90 @@
-<script>
-    window.renderLiveGallery = function(galleryItems = [], lang = 'es') {
-        const container = document.getElementById('bento-gallery-grid');
-        if (!container || !galleryItems.length) return;
+---
+export interface Props {
+    gallery: Record<string, any>[];
+}
 
-        container.innerHTML = galleryItems.map((item) => {
-            const rawUrl = item.imagen || item.image_url || '';
-            const match = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-            const imgUrl = match && match[1] ? `https://lh3.googleusercontent.com/d/${match[1]}` : rawUrl;
-            const title = item[`titulo_${lang}`] || item.titulo_es || '';
-            const tag = item[`tag_${lang}`] || item.tag_es || '';
-            const spanClasses = `${item.col_span || 'md:col-span-1'} ${item.row_span || 'md:row-span-1'}`;
+// Normaliza encabezados del Sheet: ignora mayúsculas, acentos, espacios y guiones.
+const norm = (s: string) =>
+    String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
-            return `
-                <div class="group relative rounded-3xl overflow-hidden shadow-lg ${spanClasses} min-h-[260px]">
-                    <img src="${imgUrl}" alt="${title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
-                        ${tag ? `<span class="text-xs font-bold uppercase tracking-widest text-[#D4A373] mb-1 gallery-tag" data-es="${item.tag_es || ''}" data-en="${item.tag_en || ''}" data-fr="${item.tag_fr || ''}" data-jp="${item.tag_jp || ''}">${tag}</span>` : ''}
-                        <h3 class="text-white font-serif text-xl md:text-2xl font-bold gallery-title" data-es="${item.titulo_es || ''}" data-en="${item.titulo_en || ''}" data-fr="${item.titulo_fr || ''}" data-jp="${item.titulo_jp || ''}">${title}</h3>
-                    </div>
+// Tailwind solo genera las clases que aparecen escritas completas en el código.
+// Por eso el Sheet manda un número (1, 2 o 3) y aquí se traduce a la clase real.
+const COL: Record<number, string> = { 1: 'md:col-span-1', 2: 'md:col-span-2', 3: 'md:col-span-3' };
+const ROW: Record<number, string> = { 1: 'md:row-span-1', 2: 'md:row-span-2', 3: 'md:row-span-3' };
+const span = (value: any, map: Record<number, string>) => {
+    const n = parseInt(String(value ?? '').replace(/\D/g, ''), 10);
+    return map[n] ?? map[1];
+};
+
+// Convierte enlaces de Google Drive (/d/ID/...) a una URL de imagen directa.
+const toImageUrl = (raw: string) => {
+    const match = raw.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    return match ? `https://lh3.googleusercontent.com/d/${match[1]}` : raw;
+};
+
+const items = (Astro.props.gallery ?? [])
+    .map((row) => {
+        const r: Record<string, any> = {};
+        for (const [k, v] of Object.entries(row)) r[norm(k)] = v;
+
+        const lang = (base: string) => {
+            const es = String(r[base + 'es'] ?? '');
+            return {
+                es,
+                en: String(r[base + 'en'] || es),
+                fr: String(r[base + 'fr'] || es),
+                jp: String(r[base + 'jp'] || r[base + 'ja'] || es),
+            };
+        };
+
+        return {
+            img: toImageUrl(String(r['imagen'] ?? r['imageurl'] ?? '')),
+            titulo: lang('titulo'),
+            tag: lang('tag'),
+            spans: `${span(r['colspan'], COL)} ${span(r['rowspan'], ROW)}`,
+        };
+    })
+    .filter((item) => item.img);
+---
+{items.length > 0 && (
+<section id="galeria" class="py-24 px-6">
+    <div class="text-center max-w-2xl mx-auto mb-16 reveal-on-scroll">
+        <h2 class="text-4xl md:text-5xl font-bold mb-4 font-serif" style="color: var(--text-color);" data-i18n="gallery-title">Galería</h2>
+        <p class="font-light" style="color: var(--subtext-color);" data-i18n="gallery-subtitle">Momentos y lugares que nos hacen únicos.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 md:auto-rows-[260px] grid-flow-dense gap-4 max-w-7xl mx-auto">
+        {items.map((item) => (
+            <div class={`group relative rounded-3xl overflow-hidden shadow-lg min-h-[260px] reveal-on-scroll ${item.spans}`}>
+                <img
+                    src={item.img}
+                    alt={item.titulo.es}
+                    loading="lazy"
+                    referrerpolicy="no-referrer"
+                    class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
+                    {item.tag.es && (
+                        <span
+                            class="text-xs font-bold uppercase tracking-widest text-[#D4A373] mb-1 gallery-tag"
+                            data-es={item.tag.es}
+                            data-en={item.tag.en}
+                            data-fr={item.tag.fr}
+                            data-jp={item.tag.jp}>
+                            {item.tag.es}
+                        </span>
+                    )}
+                    <h3
+                        class="text-white font-serif text-xl md:text-2xl font-bold gallery-title"
+                        data-es={item.titulo.es}
+                        data-en={item.titulo.en}
+                        data-fr={item.titulo.fr}
+                        data-jp={item.titulo.jp}>
+                        {item.titulo.es}
+                    </h3>
                 </div>
-            `;
-        }).join('');
-    };
-</script>
+            </div>
+        ))}
+    </div>
+</section>
+)}

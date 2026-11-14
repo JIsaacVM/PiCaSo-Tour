@@ -1,15 +1,49 @@
 ---
 export interface Props {
-    tours: Array<{ 
-        id: string; 
-        titulo: { es: string; en: string; fr: string; jp: string }; 
-        duracion: string; 
-        descripcion: { es: string; en: string; fr: string; jp: string }; 
-        imagen: string; 
-        waLink: string 
-    }>;
+    tours: Record<string, any>[];
 }
-const { tours } = Astro.props;
+
+// Las filas del Sheet llegan planas (ej. titulo_es, titulo_en...).
+// Aquí se convierten al formato { titulo: {es,en,fr,jp}, descripcion: {...} }.
+// Ignora mayúsculas, acentos, espacios y guiones en los encabezados:
+// "titulo_es", "Título ES", "titulo-es" y "tituloEs" funcionan igual.
+const norm = (s: string) =>
+    String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+const tours = (Astro.props.tours ?? []).map((row) => {
+    const r: Record<string, any> = {};
+    for (const [k, v] of Object.entries(row)) r[norm(k)] = v;
+
+    // Devuelve el primer valor no vacío entre varios nombres de columna posibles.
+    const pick = (names: string[]) => {
+        for (const n of names) {
+            if (r[n] !== undefined && r[n] !== '') return r[n];
+        }
+        return undefined;
+    };
+
+    const byLang = (bases: string[]) => {
+        // Si la API ya manda un objeto { es, en, fr, jp }, se respeta.
+        const obj = bases.map((b) => r[b]).find((v) => v && typeof v === 'object');
+        if (obj) return obj;
+        const es = String(pick(bases.map((b) => b + 'es')) ?? pick(bases) ?? '');
+        return {
+            es,
+            en: String(pick(bases.map((b) => b + 'en')) ?? es),
+            fr: String(pick(bases.map((b) => b + 'fr')) ?? es),
+            jp: String(pick(bases.flatMap((b) => [b + 'jp', b + 'ja'])) ?? es),
+        };
+    };
+
+    return {
+        id: String(r['id'] ?? ''),
+        titulo: byLang(['titulo']),
+        descripcion: byLang(['desc', 'descripcion']),
+        duracion: String(r['duracion'] ?? ''),
+        imagen: String(r['imagen'] ?? ''),
+        waLink: String(r['walink'] ?? ''),
+    };
+});
 ---
 <section id="experiencias" class="py-24 px-6 border-y border-[#D4A373]/50" style="background-color: var(--card-bg);">
     <div class="text-center max-w-2xl mx-auto mb-16 reveal-on-scroll">
@@ -21,7 +55,17 @@ const { tours } = Astro.props;
         {tours.map((tour) => (
             <div class="rounded-3xl border border-[#D4A373] overflow-hidden hover:border-[#A94438] hover:-translate-y-2 transition-all duration-500 flex flex-col justify-between shadow-xl group reveal-on-scroll" style="background-color: var(--bg-color);">
                 <div class="h-48 bg-[#EED9C4] flex items-center justify-center text-[#5C4033] text-sm font-serif italic border-b border-[#D4A373] overflow-hidden relative">
-                    <span class="group-hover:scale-110 transition-transform duration-700 font-bold">{tour.imagen || 'Tour PiCaSo'}</span>
+                    {tour.imagen ? (
+                        <img
+                            src={tour.imagen}
+                            alt={tour.titulo.es}
+                            loading="lazy"
+                            referrerpolicy="no-referrer"
+                            class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        />
+                    ) : (
+                        <span class="group-hover:scale-110 transition-transform duration-700 font-bold">Tour PiCaSo</span>
+                    )}
                 </div>
                 <div class="p-7 flex flex-col flex-grow">
                     <span class="text-xs text-[#A94438] font-bold uppercase tracking-widest bg-[#F5EBE1] px-3.5 py-1 rounded-full w-max mb-3 border border-[#D4A373] shadow-sm">{tour.duracion}</span>
