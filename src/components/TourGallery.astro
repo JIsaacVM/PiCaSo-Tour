@@ -4,17 +4,32 @@ export interface Props {
 }
 
 // Normaliza encabezados del Sheet: ignora mayúsculas, acentos, espacios y guiones.
+// (title_es, titulo_es, "Title ES" → todos se leen igual)
 const norm = (s: string) =>
     String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
-// Tailwind solo genera las clases que aparecen escritas completas en el código.
-// Por eso el Sheet manda un número (1, 2 o 3) y aquí se traduce a la clase real.
-const COL: Record<number, string> = { 1: 'md:col-span-1', 2: 'md:col-span-2', 3: 'md:col-span-3' };
-const ROW: Record<number, string> = { 1: 'md:row-span-1', 2: 'md:row-span-2', 3: 'md:row-span-3' };
-const span = (value: any, map: Record<number, string>) => {
-    const n = parseInt(String(value ?? '').replace(/\D/g, ''), 10);
-    return map[n] ?? map[1];
+// Tailwind solo genera clases escritas completas en el código, por eso se mapean aquí.
+// Móvil: 2 columnas. Escritorio: 4 columnas.
+const COL: Record<number, string> = {
+    1: 'col-span-1',
+    2: 'col-span-2',
+    3: 'col-span-2 md:col-span-3',
+    4: 'col-span-2 md:col-span-4',
 };
+const ROW: Record<number, string> = { 1: 'row-span-1', 2: 'row-span-2', 3: 'row-span-3' };
+
+// Si en el Sheet NO se llenan "cols" y "rows", se reparte este patrón variado
+// automáticamente: así el cliente solo agrega fotos y la galería se ve bien.
+const PATTERN: [number, number][] = [
+    [2, 2], [1, 1], [1, 2], [1, 1], [2, 1], [1, 1], [1, 1], [1, 2],
+    [2, 1], [1, 1], [2, 2], [1, 1], [1, 2], [1, 1], [1, 1], [2, 1],
+];
+
+const toInt = (v: any) => {
+    const n = parseInt(String(v ?? '').replace(/\D/g, ''), 10);
+    return Number.isFinite(n) ? n : undefined;
+};
+const clamp = (n: number, min: number, max: number) => Math.min(Math.max(n, min), max);
 
 // Convierte enlaces de Google Drive (/d/ID/...) a una URL de imagen directa.
 const toImageUrl = (raw: string) => {
@@ -22,51 +37,67 @@ const toImageUrl = (raw: string) => {
     return match ? `https://lh3.googleusercontent.com/d/${match[1]}` : raw;
 };
 
-const items = (Astro.props.gallery ?? [])
+const rows = (Astro.props.gallery ?? [])
     .map((row) => {
         const r: Record<string, any> = {};
         for (const [k, v] of Object.entries(row)) r[norm(k)] = v;
 
-        const lang = (base: string) => {
-            const es = String(r[base + 'es'] ?? '');
+        const pick = (names: string[]) => {
+            for (const n of names) if (r[n] !== undefined && r[n] !== '') return String(r[n]);
+            return undefined;
+        };
+        const lang = (bases: string[]) => {
+            const es = pick(bases.map((b) => b + 'es')) ?? '';
             return {
                 es,
-                en: String(r[base + 'en'] || es),
-                fr: String(r[base + 'fr'] || es),
-                jp: String(r[base + 'jp'] || r[base + 'ja'] || es),
+                en: pick(bases.map((b) => b + 'en')) ?? es,
+                fr: pick(bases.map((b) => b + 'fr')) ?? es,
+                jp: pick(bases.flatMap((b) => [b + 'jp', b + 'ja'])) ?? es,
             };
         };
 
         return {
-            img: toImageUrl(String(r['imagen'] ?? r['imageurl'] ?? '')),
-            titulo: lang('titulo'),
-            tag: lang('tag'),
-            spans: `${span(r['colspan'], COL)} ${span(r['rowspan'], ROW)}`,
+            img: toImageUrl(pick(['imageurl', 'imagen', 'image', 'url']) ?? ''),
+            titulo: lang(['title', 'titulo']),
+            tag: lang(['tag', 'etiqueta']),
+            cols: toInt(r['cols'] ?? r['colspan']),
+            rows: toInt(r['rows'] ?? r['rowspan']),
         };
     })
-    .filter((item) => item.img);
+    .filter((row) => row.img);
+
+const items = rows.map((row, i) => {
+    const auto = row.cols === undefined && row.rows === undefined;
+    const [pc, pr] = PATTERN[i % PATTERN.length];
+    const c = clamp(auto ? pc : row.cols ?? 1, 1, 4);
+    const rw = clamp(auto ? pr : row.rows ?? 1, 1, 3);
+    return { ...row, spans: `${COL[c]} ${ROW[rw]}`, big: c * rw >= 4 };
+});
 ---
 {items.length > 0 && (
-<section id="galeria" class="py-24 px-6">
-    <div class="text-center max-w-2xl mx-auto mb-16 reveal-on-scroll">
+<section id="galeria" class="py-24 px-4 md:px-6">
+    <div class="text-center max-w-2xl mx-auto mb-14 reveal-on-scroll">
         <h2 class="text-4xl md:text-5xl font-bold mb-4 font-serif" style="color: var(--text-color);" data-i18n="gallery-title">Galería</h2>
         <p class="font-light" style="color: var(--subtext-color);" data-i18n="gallery-subtitle">Momentos y lugares que nos hacen únicos.</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 md:auto-rows-[260px] grid-flow-dense gap-4 max-w-7xl mx-auto">
+    <div class="grid grid-cols-2 md:grid-cols-4 auto-rows-[150px] md:auto-rows-[220px] grid-flow-dense gap-3 md:gap-4 max-w-7xl mx-auto">
         {items.map((item) => (
-            <div class={`group relative rounded-3xl overflow-hidden shadow-lg min-h-[260px] reveal-on-scroll ${item.spans}`}>
+            <button
+                type="button"
+                class={`gallery-item group relative block w-full h-full rounded-2xl md:rounded-3xl overflow-hidden shadow-lg cursor-zoom-in text-left reveal-on-scroll ${item.spans}`}>
                 <img
                     src={item.img}
                     alt={item.titulo.es}
                     loading="lazy"
+                    decoding="async"
                     referrerpolicy="no-referrer"
                     class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
+                <span class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent flex flex-col justify-end p-3 md:p-5">
                     {item.tag.es && (
                         <span
-                            class="text-xs font-bold uppercase tracking-widest text-[#D4A373] mb-1 gallery-tag"
+                            class="gallery-tag block text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#D4A373] mb-0.5"
                             data-es={item.tag.es}
                             data-en={item.tag.en}
                             data-fr={item.tag.fr}
@@ -74,17 +105,51 @@ const items = (Astro.props.gallery ?? [])
                             {item.tag.es}
                         </span>
                     )}
-                    <h3
-                        class="text-white font-serif text-xl md:text-2xl font-bold gallery-title"
-                        data-es={item.titulo.es}
-                        data-en={item.titulo.en}
-                        data-fr={item.titulo.fr}
-                        data-jp={item.titulo.jp}>
-                        {item.titulo.es}
-                    </h3>
-                </div>
-            </div>
+                    {item.titulo.es && (
+                        <span
+                            class={`gallery-title block text-white font-serif font-bold leading-tight ${item.big ? 'text-xl md:text-3xl' : 'text-sm md:text-lg'}`}
+                            data-es={item.titulo.es}
+                            data-en={item.titulo.en}
+                            data-fr={item.titulo.fr}
+                            data-jp={item.titulo.jp}>
+                            {item.titulo.es}
+                        </span>
+                    )}
+                </span>
+            </button>
         ))}
     </div>
 </section>
 )}
+
+<!-- Visor para ampliar las fotos -->
+<dialog id="gallery-lightbox" class="backdrop:bg-black/85 bg-transparent p-0 m-auto max-w-[95vw] max-h-[92vh] overflow-visible">
+    <div class="relative">
+        <img id="gallery-lightbox-img" src="" alt="" class="max-w-[95vw] max-h-[80vh] rounded-2xl object-contain mx-auto" />
+        <p id="gallery-lightbox-caption" class="text-white text-center mt-3 font-serif text-lg"></p>
+        <button id="gallery-lightbox-close" type="button" aria-label="Cerrar" class="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-white text-black font-bold shadow-lg">✕</button>
+    </div>
+</dialog>
+
+<script>
+    const dialog = document.getElementById('gallery-lightbox') as HTMLDialogElement | null;
+    const lightboxImg = document.getElementById('gallery-lightbox-img') as HTMLImageElement | null;
+    const caption = document.getElementById('gallery-lightbox-caption');
+
+    document.querySelectorAll<HTMLButtonElement>('.gallery-item').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const img = btn.querySelector('img');
+            const title = btn.querySelector('.gallery-title');
+            if (!dialog || !lightboxImg || !img) return;
+            lightboxImg.src = img.src;
+            lightboxImg.alt = img.alt;
+            if (caption) caption.textContent = title?.textContent ?? '';
+            dialog.showModal();
+        });
+    });
+
+    dialog?.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (target === dialog || target.id === 'gallery-lightbox-close') dialog.close();
+    });
+</script>

@@ -1,32 +1,85 @@
-<header class="fixed top-6 left-0 w-full z-40 px-6 pointer-events-none flex justify-center">
-    <nav class="max-w-6xl w-full mx-auto h-18 px-6 flex items-center justify-between backdrop-blur-md border border-[#D4A373]/50 shadow-xl transition-all duration-300 pointer-events-auto rounded-full" style="background-color: var(--nav-bg);">
-        <a href="#inicio" class="text-2xl font-bold tracking-wider font-serif hover:text-[#A94438] transition-colors" style="color: var(--text-color);">
-            <img src="../../public/img/logo-picaso-tour.webp" alt="" class="w-20">
-        </a>
+<header class="fixed top-3 md:top-6 left-0 w-full z-40 px-3 md:px-6 pointer-events-none">
+    <div id="navWrapper" class="relative max-w-6xl w-full mx-auto pointer-events-auto">
 
-        <ul class="hidden lg:flex space-x-6 text-sm font-semibold" style="color: var(--subtext-color);">
-            <li><a href="#inicio" class="hover:text-[#A94438] transition-colors" data-i18n="nav-inicio">Inicio</a></li>
-            <li><a href="#nosotros" class="hover:text-[#A94438] transition-colors" data-i18n="nav-nosotros">Quiénes Somos</a></li>
-            <li><a href="#experiencias" class="hover:text-[#A94438] transition-colors" data-i18n="nav-experiencias">Experiencias</a></li>
-            <li><a href="#testimonios" class="hover:text-[#A94438] transition-colors" data-i18n="nav-testimonios">Testimonios</a></li>
-            <li><a href="#blog" class="hover:text-[#A94438] transition-colors" data-i18n="nav-blog">Blog</a></li>
-        </ul>
-        
-        <div class="flex items-center gap-3 relative">
-            <select id="langSelect" class="hover:opacity-85 border border-[#D4A373] px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer focus:outline-none shadow-sm" style="background-color: var(--card-bg); color: var(--text-color);">
-                <option value="es">🇲🇽 ES</option>
-                <option value="en">🇺🇸 EN</option>
-                <option value="fr">🇫🇷 FR</option>
-                <option value="jp">🇯🇵 JP</option>
-            </select>
+        <nav class="h-16 md:h-18 px-4 md:px-6 flex items-center justify-between gap-2 backdrop-blur-md border border-[#D4A373]/50 shadow-xl transition-all duration-300 rounded-full" style="background-color: var(--nav-bg);">
+            <a href="#inicio" class="shrink-0 hover:opacity-80 transition-opacity">
+                <img src="/img/logo-picaso-tour.webp" alt="PiCaSo Tours" class="w-14 md:w-20">
+            </a>
 
-            <button id="themeToggle" class="w-9 h-9 border border-[#D4A373] rounded-full flex items-center justify-center text-xs font-bold transition-all hover:scale-105 cursor-pointer shadow-sm" style="background-color: var(--card-bg); color: var(--text-color);" title="Cambiar Tema">
-                🌙
-            </button>
+            <!-- Menú de escritorio -->
+            <ul class="hidden lg:flex items-center lg:space-x-4 xl:space-x-6 text-sm font-semibold" style="color: var(--subtext-color);">
+                <li><a href="#inicio" class="hover:text-[#A94438] transition-colors" data-i18n="nav-inicio">Inicio</a></li>
+                <li><a href="#nosotros" class="hover:text-[#A94438] transition-colors" data-i18n="nav-nosotros">Quiénes Somos</a></li>
+                <li><a href="#experiencias" class="hover:text-[#A94438] transition-colors" data-i18n="nav-experiencias">Experiencias</a></li>
+                <li><a href="#galeria" class="hover:text-[#A94438] transition-colors" data-i18n="nav-galeria">Galería</a></li>
+                <li><a href="#testimonios" class="hover:text-[#A94438] transition-colors" data-i18n="nav-testimonios">Testimonios</a></li>
+                <li><a href="#blog" class="hover:text-[#A94438] transition-colors" data-i18n="nav-blog">Blog</a></li>
+            </ul>
 
-            <a href="https://wa.me/524771668537" target="_blank" class="bg-[#A94438] hover:bg-[#82322A] text-white font-bold px-5 py-2 rounded-full text-xs transition-all duration-300 shadow-md hover:scale-105 active:scale-95" data-i18n="btn-book-nav">
+            <div class="flex items-center gap-2 md:gap-3">
+                <select id="langSelect" class="hover:opacity-85 border border-[#D4A373] px-2.5 md:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer focus:outline-none shadow-sm" style="background-color: var(--card-bg); color: var(--text-color);">
+                    <option value="es">🇲🇽 ES</option>
+                    <option value="en">🇺🇸 EN</option>
+                    <option value="fr">🇫🇷 FR</option>
+                    <option value="jp">🇯🇵 JP</option>
+                </select>
+
+                <button id="themeToggle" class="w-9 h-9 border border-[#D4A373] rounded-full flex items-center justify-center text-xs font-bold transition-all hover:scale-105 cursor-pointer shadow-sm" style="background-color: var(--card-bg); color: var(--text-color);" title="Cambiar Tema">
+                    🌙
+                </button>
+
+                <a href="https://wa.me/524771668537" target="_blank" class="hidden sm:inline-block bg-[#A94438] hover:bg-[#82322A] text-white font-bold px-5 py-2 rounded-full text-xs transition-all duration-300 shadow-md hover:scale-105 active:scale-95" data-i18n="btn-book-nav">
+                    Reservar
+                </a>
+
+                <!-- Botón hamburguesa (solo móvil y tablet) -->
+                <button id="menuToggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="mobileMenu" class="lg:hidden w-9 h-9 border border-[#D4A373] rounded-full flex items-center justify-center transition-all hover:scale-105 cursor-pointer shadow-sm" style="background-color: var(--card-bg); color: var(--text-color);">
+                    <svg id="iconOpen" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+                    <svg id="iconClose" class="w-5 h-5 hidden" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Menú desplegable (móvil y tablet) -->
+        <div id="mobileMenu" class="hidden lg:hidden absolute left-0 right-0 top-full mt-2 rounded-3xl border border-[#D4A373]/50 shadow-xl p-4" style="background-color: var(--card-bg);">
+            <ul class="flex flex-col text-base font-semibold" style="color: var(--text-color);">
+                <li><a href="#inicio" class="block py-3 px-4 rounded-xl hover:bg-[#D4A373]/20 hover:text-[#A94438] transition-colors" data-i18n="nav-inicio">Inicio</a></li>
+                <li><a href="#nosotros" class="block py-3 px-4 rounded-xl hover:bg-[#D4A373]/20 hover:text-[#A94438] transition-colors" data-i18n="nav-nosotros">Quiénes Somos</a></li>
+                <li><a href="#experiencias" class="block py-3 px-4 rounded-xl hover:bg-[#D4A373]/20 hover:text-[#A94438] transition-colors" data-i18n="nav-experiencias">Experiencias</a></li>
+                <li><a href="#galeria" class="block py-3 px-4 rounded-xl hover:bg-[#D4A373]/20 hover:text-[#A94438] transition-colors" data-i18n="nav-galeria">Galería</a></li>
+                <li><a href="#testimonios" class="block py-3 px-4 rounded-xl hover:bg-[#D4A373]/20 hover:text-[#A94438] transition-colors" data-i18n="nav-testimonios">Testimonios</a></li>
+                <li><a href="#blog" class="block py-3 px-4 rounded-xl hover:bg-[#D4A373]/20 hover:text-[#A94438] transition-colors" data-i18n="nav-blog">Blog</a></li>
+            </ul>
+
+            <a href="https://wa.me/524771668537" target="_blank" class="sm:hidden mt-3 block text-center bg-[#A94438] hover:bg-[#82322A] text-white font-bold px-5 py-3 rounded-full text-sm transition-all duration-300 shadow-md active:scale-95" data-i18n="btn-book-nav">
                 Reservar
             </a>
         </div>
-    </nav>
+    </div>
 </header>
+
+<script>
+    const wrapper = document.getElementById('navWrapper');
+    const toggle = document.getElementById('menuToggle');
+    const menu = document.getElementById('mobileMenu');
+    const iconOpen = document.getElementById('iconOpen');
+    const iconClose = document.getElementById('iconClose');
+
+    function setOpen(open: boolean) {
+        if (!menu || !toggle) return;
+        menu.classList.toggle('hidden', !open);
+        toggle.setAttribute('aria-expanded', String(open));
+        iconOpen?.classList.toggle('hidden', open);
+        iconClose?.classList.toggle('hidden', !open);
+    }
+
+    toggle?.addEventListener('click', () => setOpen(menu?.classList.contains('hidden') ?? false));
+
+    // Se cierra al elegir una opción, al tocar fuera, con Escape o al pasar a pantalla grande
+    menu?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
+    document.addEventListener('click', (e) => {
+        if (menu && !menu.classList.contains('hidden') && wrapper && !wrapper.contains(e.target as Node)) setOpen(false);
+    });
+    window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => { if (e.matches) setOpen(false); });
+</script>

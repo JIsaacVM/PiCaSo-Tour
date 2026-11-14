@@ -163,8 +163,8 @@ if (apiData.tours.length === 0) {
 					}
 				});
 
-				// Traducir dinámicamente tours y galería de Google Sheets
-				document.querySelectorAll('.tour-title, .tour-desc, .gallery-title, .gallery-tag').forEach(el => {
+				// Traducir todo elemento que traiga data-es/en/fr/jp (tours, galería, videos)
+				document.querySelectorAll('[data-es]').forEach(el => {
 					const text = el.getAttribute(`data-${lang}`);
 					if (text) el.textContent = text;
 				});

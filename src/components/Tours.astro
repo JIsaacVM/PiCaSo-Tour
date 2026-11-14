@@ -35,11 +35,19 @@ const tours = (Astro.props.tours ?? []).map((row) => {
         };
     };
 
+    // Si Google Sheets entrega el precio como número, se le da formato de pesos.
+    const rawPrice = r['precio'];
+    const precio =
+        typeof rawPrice === 'number'
+            ? `$${rawPrice.toLocaleString('es-MX')} MXN`
+            : String(rawPrice ?? '').trim();
+
     return {
         id: String(r['id'] ?? ''),
         titulo: byLang(['titulo']),
         descripcion: byLang(['desc', 'descripcion']),
         duracion: String(r['duracion'] ?? ''),
+        precio,
         imagen: String(r['imagen'] ?? ''),
         waLink: String(r['walink'] ?? ''),
     };
@@ -50,49 +58,71 @@ const tours = (Astro.props.tours ?? []).map((row) => {
         <h2 class="text-4xl md:text-5xl font-bold mb-4 font-serif" style="color: var(--text-color);" data-i18n="exp-title">Experiencias Exclusivas</h2>
         <p class="font-light" style="color: var(--subtext-color);" data-i18n="exp-subtitle">Conoce nuestros recorridos temáticos de descubrimiento económico, aventura y turismo regenerativo.</p>
     </div>
-    
+
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
         {tours.map((tour) => (
-            <div class="rounded-3xl border border-[#D4A373] overflow-hidden hover:border-[#A94438] hover:-translate-y-2 transition-all duration-500 flex flex-col justify-between shadow-xl group reveal-on-scroll" style="background-color: var(--bg-color);">
-                <div class="h-48 bg-[#EED9C4] flex items-center justify-center text-[#5C4033] text-sm font-serif italic border-b border-[#D4A373] overflow-hidden relative">
+            <article class="group relative flex flex-col rounded-3xl border border-[#D4A373] overflow-hidden shadow-xl hover:shadow-2xl hover:border-[#A94438] hover:-translate-y-2 transition-all duration-500 reveal-on-scroll" style="background-color: var(--bg-color);">
+
+                <!-- Imagen con costura de piel -->
+                <div class="relative h-64 overflow-hidden bg-[#EED9C4]">
                     {tour.imagen ? (
                         <img
                             src={tour.imagen}
                             alt={tour.titulo.es}
                             loading="lazy"
+                            decoding="async"
                             referrerpolicy="no-referrer"
                             class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />
                     ) : (
-                        <span class="group-hover:scale-110 transition-transform duration-700 font-bold">Tour PiCaSo</span>
+                        <div class="absolute inset-0 flex items-center justify-center text-[#5C4033] font-serif italic font-bold">Tour PiCaSo</div>
+                    )}
+
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#241C15]/70 via-transparent to-[#241C15]/10"></div>
+                    <div class="absolute inset-3 rounded-2xl border-2 border-dashed border-white/50 group-hover:border-white/90 transition-colors duration-500 pointer-events-none"></div>
+
+                    {tour.duracion && (
+                        <span class="absolute top-6 left-6 inline-flex items-center gap-1.5 bg-[#F5EBE1] text-[#A94438] text-xs font-bold uppercase tracking-widest px-3.5 py-1.5 rounded-full border border-[#D4A373] shadow-md">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                            {tour.duracion}
+                        </span>
                     )}
                 </div>
-                <div class="p-7 flex flex-col flex-grow">
-                    <span class="text-xs text-[#A94438] font-bold uppercase tracking-widest bg-[#F5EBE1] px-3.5 py-1 rounded-full w-max mb-3 border border-[#D4A373] shadow-sm">{tour.duracion}</span>
-                    
-                    <!-- Título dinámico multilingüe -->
-                    <h3 class="text-2xl font-bold mb-3 font-serif tour-title" style="color: var(--text-color);" 
-                        data-es={tour.titulo.es} 
-                        data-en={tour.titulo.en} 
-                        data-fr={tour.titulo.fr} 
+
+                <!-- Contenido -->
+                <div class="flex flex-col flex-grow p-6 md:p-7">
+                    <h3 class="text-2xl md:text-[1.7rem] font-bold leading-tight mb-3 font-serif tour-title" style="color: var(--text-color);"
+                        data-es={tour.titulo.es}
+                        data-en={tour.titulo.en}
+                        data-fr={tour.titulo.fr}
                         data-jp={tour.titulo.jp}>
                         {tour.titulo.es}
                     </h3>
 
-                    <!-- Descripción dinámica multilingüe -->
-                    <p class="text-sm mb-8 flex-grow leading-relaxed font-light tour-desc" style="color: var(--subtext-color);" 
-                        data-es={tour.descripcion.es} 
-                        data-en={tour.descripcion.en} 
-                        data-fr={tour.descripcion.fr} 
+                    <p class="text-sm leading-relaxed font-light line-clamp-4 mb-6 tour-desc" style="color: var(--subtext-color);"
+                        data-es={tour.descripcion.es}
+                        data-en={tour.descripcion.en}
+                        data-fr={tour.descripcion.fr}
                         data-jp={tour.descripcion.jp}>
                         {tour.descripcion.es}
                     </p>
 
-                    <a href={tour.waLink || "https://wa.me/524771668537"} target="_blank" class="block w-full text-center bg-[#3D2C1E] hover:bg-[#241C15] text-white font-bold py-3.5 rounded-2xl transition-all duration-300 shadow-md hover:scale-[1.02] text-sm active:scale-95" data-i18n="btn-book">
-                        Reservar
-                    </a>
+                    <!-- Pie: precio + reservar -->
+                    <div class="mt-auto pt-5 border-t-2 border-dashed border-[#D4A373]/60 flex items-center justify-between gap-3">
+                        {tour.precio && (
+                            <div class="min-w-0">
+                                <span class="block text-[10px] font-bold uppercase tracking-widest" style="color: var(--subtext-color);" data-i18n="tour-from">Desde</span>
+                                <span class="block font-serif text-2xl font-bold leading-none text-[#A94438]">{tour.precio}</span>
+                            </div>
+                        )}
+
+                        <a href={tour.waLink || "https://wa.me/524771668537"} target="_blank" class="ml-auto inline-flex items-center gap-2 bg-[#3D2C1E] hover:bg-[#A94438] text-white font-bold px-5 py-3 rounded-full border border-[#D4A373]/40 text-sm transition-all duration-300 shadow-md hover:scale-105 active:scale-95">
+                            <span data-i18n="btn-book">Reservar</span>
+                            <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                        </a>
+                    </div>
                 </div>
-            </div>
+            </article>
         ))}
     </div>
 </section>
